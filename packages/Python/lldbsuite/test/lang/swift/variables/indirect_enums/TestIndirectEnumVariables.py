@@ -14,7 +14,7 @@ Tests that indirect Enum variables display correctly
 """
 import lldb
 from lldbsuite.test.lldbtest import *
-from lldbsuite.test.decorators import *
+import lldbsuite.test.decorators as decorators
 import lldbsuite.test.lldbutil as lldbutil
 import os
 import unittest2
@@ -24,15 +24,14 @@ class TestIndirectEnumVariables(TestBase):
 
     mydir = TestBase.compute_mydir(__file__)
 
-    @swiftTest
-    @skipIf(bugnumber='rdar://27568868', oslist=['linux'])
+    @decorators.swiftTest
+    @decorators.skipIf(bugnumber='rdar://27568868', oslist=['linux'])
     def test_indirect_cases_variables(self):
         """Tests that indirect Enum variables display correctly when cases are indirect"""
         self.build()
         self.do_test("indirect case break here")
 
-    @swiftTest
-    @skipIf(bugnumber='rdar://27568868', oslist=['linux'])
+    @decorators.skipIf(bugnumber='rdar://27568868', oslist=['linux'])
     def test_indirect_enum_variables(self):
         """Tests that indirect Enum variables display correctly when enum is indirect"""
         self.build()
@@ -44,7 +43,7 @@ class TestIndirectEnumVariables(TestBase):
         self.main_source_spec = lldb.SBFileSpec(self.main_source)
 
     def get_variable(self, name):
-        x = self.frame().FindVariable(name)
+        x = self.frame.FindVariable(name)
         x.SetPreferDynamicValue(lldb.eDynamicCanRunTarget)
         x.SetPreferSyntheticValue(True)
         return x
@@ -88,7 +87,7 @@ class TestIndirectEnumVariables(TestBase):
     def do_test(self, break_pattern):
         """Tests that indirect Enum variables display correctly"""
         exe_name = "a.out"
-        exe = self.getBuildArtifact(exe_name)
+        exe = os.path.join(os.getcwd(), exe_name)
 
         # Create the target
         target = self.dbg.CreateTarget(exe)
@@ -109,6 +108,9 @@ class TestIndirectEnumVariables(TestBase):
             process, breakpoint)
 
         self.assertTrue(len(threads) == 1)
+        self.thread = threads[0]
+        self.frame = self.thread.frames[0]
+        self.assertTrue(self.frame, "Frame 0 is valid.")
 
         GP_StructType = self.get_variable("GP_StructType")
         GP_TupleType = self.get_variable("GP_TupleType")
